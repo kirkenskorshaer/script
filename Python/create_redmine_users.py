@@ -7,21 +7,26 @@ import getopt
 
 
 try:
-	options, arguments = getopt.getopt(sys.argv[1:], "k:c:", ["key=", "cert_path="])
+	options, arguments = getopt.getopt(sys.argv[1:], "k:c:v:t", ["key=", "cert_path=", "verbosity=", "test"])
 except getopt.GetoptError:
-	print("create_redmine_users -k <key>")
+	print("create_redmine_users -k <key> -c <cert_path> -v <verbosity> -t")
 	sys.exit(2)
 
 certificate_path = ""
 url = "https://support.kirkenskorshaer.dk/redmine"
 key = ""
+verbosity = 0
+test = False
 
 for option, argument in options:
 	if option in ("-k", "--key"):
 		key = argument
 	if option in ("-c", "--cert_path"):
 		certificate_path = argument
-
+	if option in ("-v", "--verbosity"):
+		verbosity = int(argument)
+	if option in ("-t", "--test"):
+		test = True
 
 bruger_group = "9"
 global_redmine_handler = modules.redmine.redmine_handler.redmine_handler(certificate_path, url, key)
@@ -41,8 +46,13 @@ with open(file_name) as csvfile:
 		current_user.mail = row[3]
 		current_user.password = row[4]
 		current_user_number += 1
-		print(str(round((current_user_number * 100.0) / file_length)) + '% ' + str(current_user_number) + ' / ' + str(file_length))
-		global_redmine_handler.create_user(current_user, True)
-		global_redmine_handler.add_user_to_group(current_user.user_id, bruger_group)
+		if test is True:
+			print(current_user.get_json_text())
+		else:
+			global_redmine_handler.create_user(current_user, True)
+			global_redmine_handler.add_user_to_group(current_user.user_id, bruger_group)
+		if verbosity > 0:
+			print(str(round((current_user_number * 100.0) / file_length)) + '% ' + str(current_user_number) + ' / ' + str(file_length))
+
 
 print("done")
