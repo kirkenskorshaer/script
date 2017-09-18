@@ -1,6 +1,7 @@
 import modules.redmine.redmine_handler
 import modules.redmine.user
 import modules.util.file_helper
+import modules.util.password_generator
 import csv
 import sys
 import getopt
@@ -17,6 +18,7 @@ url = "https://support.kirkenskorshaer.dk/redmine"
 key = ""
 verbosity = 0
 test = False
+password_length = 12
 
 for option, argument in options:
 	if option in ("-k", "--key"):
@@ -45,6 +47,8 @@ with open(file_name) as csvfile:
 		current_user.lastname = row[2]
 		current_user.mail = row[3]
 		current_user.password = row[4]
+		if current_user.password == "":
+			current_user.password = modules.util.password_generator.generate_password(password_length)
 		current_user_number += 1
 		if test is True:
 			print(current_user.get_json_text())
